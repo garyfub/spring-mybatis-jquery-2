@@ -18,8 +18,7 @@
 		</property>
 	</bean>
 
-	<context:component-scan
-		base-package="com.kun.app.*.control;com.kun.app.*.service.impl" />
+	<context:component-scan base-package="com.kun.app.*.control;com.kun.app.*.service.impl" />
 	<!-- dataSource -->
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName">
@@ -91,14 +90,26 @@
 
 	<tx:advice id="txAdvice" transaction-manager="txManager">
 		<tx:attributes>
-			<!-- 这里需要深究 -->
-			<tx:method name="*" propagation="REQUIRED" rollback-for="Exception" />
+			<!-- <tx:method name="*" propagation="REQUIRED" rollback-for="Exception" /> -->
+			<!-- 如果代码写的乱、差,就解开上面的注释 ，把下面的4行注释了 -->
+			<tx:method name="*" propagation="REQUIRED" read-only="true" rollback-for="Exception" />
+			<tx:method name="delete*" propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="Exception" />
 		</tx:attributes>
 	</tx:advice>
 
 	<aop:config proxy-target-class="true">
+		<!-- String result = StringUtils.replace(pcExpr, " and ", " && "); -->
+		<!-- result = StringUtils.replace(result, " or ", " || "); -->
+		<!-- result = StringUtils.replace(result, " not ", " ! "); -->
+		<!-- return result; -->
 		<!-- expression=execution(interface's method) -->
-		<aop:pointcut id="txPointCuts" expression="(execution(* com.kun.app.*.service.*.*(..))) or (execution(* com.kun.common.service.IService.*(..)))" />
+		<!-- 对所有spring管理的bean都会检测一遍。如果expression中指定的是接口，判断是否是其子类，如果是，则子类中的所有方法都会检测一遍,并放入map中. -->
+		<!-- 如果具体类的具体方法是在expression对应接口中定义的方法，则，会标记需要事务拦截,map中key/value: -->
+		<!-- public com.kun.common.data.IMapper com.kun.app.operater.service.impl.RoleServiceImpl.getMapper()= org.aspectj.weaver.reflect.ShadowMatchImpl@709a22ea -->
+		<aop:pointcut id="txPointCuts"
+			expression="(execution(* com.kun.app.*.service.*.*(..))) || (execution(* com.kun.common.service.IService.*(..)))" />
 		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCuts" />
 	</aop:config>
 
