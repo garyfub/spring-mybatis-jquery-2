@@ -97,8 +97,8 @@
 	</tx:advice>
 
 	<aop:config proxy-target-class="true">
-		<!-- 这里需要深究 -->
-		<aop:pointcut id="txPointCuts" expression="execution(* com.kun.app.*.service.*.*(..))" />
+		<!-- expression=execution(interface's method) -->
+		<aop:pointcut id="txPointCuts" expression="(execution(* com.kun.app.*.service.*.*(..))) or (execution(* com.kun.common.service.IService.*(..)))" />
 		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCuts" />
 	</aop:config>
 
