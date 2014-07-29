@@ -12,6 +12,68 @@ $.messager.defaults = {
 	ok : "是",
 	cancel : "否"
 };
+// 时间格式化
+$.fn.datebox.defaults.formatter = function(date) {
+	var y = date.getFullYear();
+	var m = date.getMonth() + 1;
+	var d = date.getDate();
+	if (m < 10) {
+		m = "0" + m;
+	}
+	if (d < 10) {
+		d = "0" + d;
+	}
+	return y + '-' + m + '-' + d;
+};
+
+/**
+ * hash map实现
+ * 
+ * @returns
+ */
+function HashMap() {
+	this._hash = new Object();
+	this.length = 0;
+	this.put = function(key, value) {
+		if (!this.get(key))
+			this.length++;
+		this._hash[key] = value;
+	};
+	this.remove = function(key) {
+		delete this._hash[key];
+		this.length--;
+	};
+	this.size = function() {
+		return this.length;
+	};
+	this.get = function(key) {
+		return typeof (this._hash[key]) == "undefined" ? null : this._hash[key];
+	};
+	this.contains = function(key) {
+		return typeof (this._hash[key]) != "undefined";
+	};
+	this.removeAll = function() {
+		for ( var k in this._hash) {
+			delete this._hash[k];
+		}
+	};
+	this.keySet = function() {
+		var arrKeySet = new Array();
+		var index = 0;
+		for ( var key in this._hash) {
+			arrKeySet[index++] = key;
+		}
+		return arrKeySet.length == 0 ? null : arrKeySet;
+	};
+	this.values = function() {
+		var arrValues = new Array();
+		var index = 0;
+		for ( var key in this._hash) {
+			arrValues[index++] = this._hash[key];
+		}
+		return arrValues.length == 0 ? null : arrValues;
+	};
+}
 
 /**
  * 设置jquery的ajax全局请求参数
@@ -78,10 +140,10 @@ function addTab(title, url) {
 	var tabs = $('#tt').tabs('tabs');
 	$('#tt').tabs('getTab', title).panel('options').tab.unbind().bind(
 			'mouseenter', {
-				index : tabs.length - 1
+				title : title
 			}, function(e) {
-				$('#tt').tabs('select', e.data.index);
-			})
+				$('#tt').tabs('select', e.data.title);
+			});
 }
 
 /**
