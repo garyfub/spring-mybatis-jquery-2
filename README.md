@@ -1,2 +1,2 @@
-struts2-spring-hibernate
+spring-mybatis
 ========================
