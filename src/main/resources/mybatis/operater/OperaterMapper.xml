@@ -192,7 +192,7 @@
 				phone like #{objPhone} and
 			</if>
 			<if test="object.operaterCode != null and object.operaterCode != ''">
-				<bind name="objOperaterCode" value="'%'object.getOperaterCode()+'%'" />
+				<bind name="objOperaterCode" value="'%'+object.getOperaterCode()+'%'" />
 				operaterCode like #{objOperaterCode} and
 			</if>
 		</trim>
