@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
-import com.kun.common.constant.Constants;
+import com.kun.Context;
 
 /**
  * Session过期检查.
@@ -22,11 +22,10 @@ import com.kun.common.constant.Constants;
  */
 public class SessionTimeoutCheckFilter implements Filter {
 
-	private Logger logger = Logger.getLogger(this.getClass());
+	private static final Logger LOGGER = Logger.getLogger(SessionTimeoutCheckFilter.class);
 
 	private FilterConfig filterConfig;
 	private String[] vips;
-	private boolean clientRedirect = true;
 
 	public FilterConfig getFilterConfig() {
 		return filterConfig;
@@ -37,10 +36,6 @@ public class SessionTimeoutCheckFilter implements Filter {
 		String tmp = filterConfig.getInitParameter("vips");
 		if (tmp != null && tmp.length() > 0) {
 			vips = tmp.split(",");
-		}
-		tmp = filterConfig.getInitParameter("clientRedirect");
-		if (tmp != null && (tmp.equals("0") || tmp.equalsIgnoreCase("false"))) {
-			clientRedirect = false;
 		}
 	}
 
@@ -82,43 +77,36 @@ public class SessionTimeoutCheckFilter implements Filter {
 	 * @param request
 	 * @param response
 	 */
-	private void redirect(HttpServletRequest request, HttpServletResponse response) {
+	private boolean redirect(HttpServletRequest request, HttpServletResponse response) {
 		try {
-			if (clientRedirect) {
-				boolean needScript = request.getRequestURL().indexOf(".do") < 0;
-				StringBuilder sb = new StringBuilder(80);
-				if (needScript) {
-					sb.append("<script>");
-				}
-				sb.append("alert('连接超时');top.location.href='");
-				sb.append(request.getContextPath());
-				sb.append("';");
-				if (needScript) {
-					sb.append("</script>");
-				}
+			if (request.getHeader("x-requested-with") != null
+					&& request.getHeader("x-requested-with").equalsIgnoreCase("XMLHttpRequest")) {
 				response.setContentType("text/html; charset=utf-8");
-				response.setStatus(400);
-				response.getWriter().print(sb.toString());
-			} else {
-				response.sendRedirect(request.getContextPath());
+				response.setStatus(408);
+				response.getWriter().write(request.getContextPath() + "/");
+				return true;
+			} else if (request.getServletPath() != null && request.getServletPath().indexOf("main.html") >= 0) {
+				response.sendRedirect(request.getContextPath() + "/");
+				return true;
 			}
 		} catch (IOException e) {
-			logger.error(e);
+			LOGGER.error(e);
 		}
+		return false;
 	}
 
-	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException,
-			ServletException {
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws IOException, ServletException {
 		try {
 			HttpServletRequest request = (HttpServletRequest) req;
 			String requestUri = request.getServletPath();
 			if (!this.isVIP(requestUri)) {
 				HttpServletResponse response = (HttpServletResponse) res;
 				HttpSession session = request.getSession();
-				if ((session == null || session.getAttribute(Constants.USER_INFO) == null)) {
-					logger.info("session timeout PATH：" + requestUri);
-					redirect(request, response);
-					return;
+				if ((session == null || session.getAttribute(Context.USER_INFO) == null)) {
+					if (redirect(request, response)) {
+						return;
+					}
 				}
 			}
 			chain.doFilter(req, res);

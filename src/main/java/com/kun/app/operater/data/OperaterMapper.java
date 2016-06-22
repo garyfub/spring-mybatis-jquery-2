@@ -11,9 +11,8 @@ public interface OperaterMapper extends IMapper<Operater> {
 	 * 
 	 * @author songkun
 	 * @create 2014年4月25日 下午6:49:59
-	 * @since
 	 * @param operater
 	 * @throws Exception
 	 */
-	public Operater getOneByNameOrCode(@Param("object") Operater operater) throws Exception;
+	public Operater getOneByName(@Param("object") Operater operater) throws Exception;
 }

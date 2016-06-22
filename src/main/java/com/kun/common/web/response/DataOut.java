@@ -28,6 +28,10 @@ public class DataOut<T> implements Out<T> {
 		this.pagination = pagination;
 	}
 
+	public DataOut(List<T> rows) {
+		this.rows = rows;
+	}
+
 	@Override
 	public List<T> getRows() {
 		return rows;
@@ -45,10 +49,13 @@ public class DataOut<T> implements Out<T> {
 
 	@Override
 	public int getTotal() {
-		if (this.pagination == null) {
-			return 0;
+		if (this.pagination != null) {
+			return this.pagination.getTotalRows();
 		}
-		return this.pagination.getTotalRows();
+		if (this.rows != null) {
+			return this.rows.size();
+		}
+		return 0;
 	}
 
 	// extends

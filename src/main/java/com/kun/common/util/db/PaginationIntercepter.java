@@ -32,7 +32,7 @@ import com.kun.common.bean.Pagination;
  * @version 1.0.0
  * @2014年7月3日 下午11:05:57
  */
-@Intercepts({@Signature(method = "prepare", type = StatementHandler.class, args = {Connection.class})})
+@Intercepts({@Signature(method = "prepare", type = StatementHandler.class, args = {Connection.class, Integer.class})})
 public class PaginationIntercepter implements Interceptor {
 
 	private Dialect dialect = Dialect.getInstance(Dialect.MYSQL);

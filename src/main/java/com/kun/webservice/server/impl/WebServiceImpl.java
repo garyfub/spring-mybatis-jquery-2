@@ -27,9 +27,9 @@ public class WebServiceImpl implements IWebService {
 	private IOperaterService operaterService;
 
 	@Override
-	public boolean login(String userCode, String pswd) {
+	public boolean login(String name, String pswd) {
 		Operater operater = new Operater();
-		operater.setCode(userCode);
+		operater.setName(name);
 		operater.setPassword(pswd);
 		try {
 			if (operaterService.validate(operater) != null) {

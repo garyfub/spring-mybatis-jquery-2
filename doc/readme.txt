@@ -1,10 +1,11 @@
+https://github.com/songkun
 开源使用。如果觉得可以，谢谢使用，如果觉得有问题，请指正，谢谢。
 
 xintiankun@163.com
 宋坤
 
 1. 页面
-	easyUI(jquery)
+	easyUI(jquery)，页面建议自己写
 	
 2. 控制层
 	springmvc

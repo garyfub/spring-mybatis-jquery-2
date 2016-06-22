@@ -7,8 +7,6 @@
 
 package com.kun.app.operater.control;
 
-import java.util.Date;
-
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Controller;
@@ -17,13 +15,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.kun.Context;
 import com.kun.app.operater.model.Operater;
 import com.kun.app.operater.service.IOperaterService;
 import com.kun.common.bean.Pagination;
-import com.kun.common.constant.Constants;
 import com.kun.common.exception.ServiceException;
 import com.kun.common.util.MD5Util;
-import com.kun.common.web.control.BaseControl;
+import com.kun.common.web.control.BaseController;
 import com.kun.common.web.response.DataOut;
 import com.kun.common.web.response.MessageOut;
 import com.kun.common.web.response.Out;
@@ -37,7 +35,7 @@ import com.kun.common.web.response.Out;
  */
 @Controller("operaterControl")
 @RequestMapping("/operater")
-public class OperaterControl extends BaseControl<Operater> {
+public class OperaterController extends BaseController<Operater> {
 
 	@Resource(name = "operaterService")
 	private IOperaterService operaterService;
@@ -74,18 +72,15 @@ public class OperaterControl extends BaseControl<Operater> {
 	@RequestMapping("/add.do")
 	@ResponseBody
 	public Out<Object> add(Operater operater) {
+		if (operater.getName() == null) {
+			return MessageOut.ADD_FAIL_MESSAGE;
+		}
 		try {
 			if (this.operaterService.isExist(operater)) {// 如果后台用户已经存在
 				return MessageOut.NAME_OR_CODE_EXIST_MESSAGE;
 			} else {
 				this.getLogger().info("新增用户: " + operater.getName());
 				operater.setPassword(MD5Util.getMD5String(operater.getPassword()));
-				operater.setSuperUser(0);
-				Date date = new Date();
-				operater.setCreateTime(date);
-				operater.setUpdateTime(date);
-				operater.setOperaterId(this.getCurrentOperater().getId());
-				operater.setOperaterCode(this.getCurrentOperater().getCode());
 				operater.setStatus(1);
 				this.operaterService.save(operater);
 			}
@@ -109,6 +104,9 @@ public class OperaterControl extends BaseControl<Operater> {
 	@RequestMapping("/update.do")
 	@ResponseBody
 	public Out<Object> update(Operater operater) {
+		if (operater.getName() == null) {
+			return MessageOut.UPDATE_FAIL_MESSAGE;
+		}
 		Operater curOperater = this.getCurrentOperater();
 		try {
 			Operater dbOperater = (Operater) this.operaterService.getByKey(operater.getId());
@@ -116,22 +114,14 @@ public class OperaterControl extends BaseControl<Operater> {
 				return MessageOut.RECORD_UN_EXIST_MESSAGE;
 			} else {
 				// 如果不是超级用户 或者 不是用户自己 ，无法修改
-				if (dbOperater.getId().equals(curOperater.getId())
-						|| (curOperater.getSuperUser() == 1 && dbOperater.getSuperUser() != 1)) {
+				if (dbOperater.getId().equals(curOperater.getId())) {
 					if (this.operaterService.isExist(operater)) {
 						return MessageOut.NAME_OR_CODE_EXIST_MESSAGE;
 					} else {
-						dbOperater.setCode(operater.getCode());
 						dbOperater.setName(operater.getName());
-						dbOperater.setEmail(operater.getEmail());
-						dbOperater.setType(operater.getType());
 						if (operater.getPassword() != null && operater.getPassword().length() > 0) {
 							dbOperater.setPassword(MD5Util.getMD5String(operater.getPassword()));
 						}
-						dbOperater.setPhone(operater.getPhone());
-						dbOperater.setUpdateTime(new Date());
-						dbOperater.setOperaterId(curOperater.getId());
-						dbOperater.setOperaterCode(curOperater.getCode());
 						this.operaterService.update(dbOperater);
 					}
 				} else {
@@ -158,32 +148,13 @@ public class OperaterControl extends BaseControl<Operater> {
 	@ResponseBody
 	public Out<Object> delete(String ids) {
 		try {
-			boolean flag = true;
-			String msg = null;
 			if (ids != null && ids.length() > 0) {
 				String[] idsArr = ids.split(",");
-				for (int i = 0; i < idsArr.length; i++) {
-					Operater operater = (Operater) this.operaterService.getByKey(Long.parseLong(idsArr[i]));
-					if (1 == operater.getSuperUser()) {
-						flag = false;
-						continue;
-					}
-					this.operaterService.delete(operater);
-				}
-				if (!flag) {
-					if (idsArr.length == 1) {
-						msg = "超级用户不能删除";
-					} else {
-						msg = "选中的超级用户不能删除";
-					}
+				for (String id : idsArr) {
+					this.operaterService.deleteByKey(Long.parseLong(id));
 				}
 			}
-			if (flag) {
-				return MessageOut.DELETE_OK_MESSAGE;
-			} else {
-				return new MessageOut<Object>(false, msg);
-				// this.modelWrapper.setMessage(true, msg);
-			}
+			return MessageOut.DELETE_OK_MESSAGE;
 		} catch (ServiceException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -225,10 +196,7 @@ public class OperaterControl extends BaseControl<Operater> {
 	@ResponseBody
 	public Operater getMyInfo() {
 		Operater operater = new Operater();
-		operater.setCode(this.getCurrentOperater().getCode());
-		operater.setEmail(this.getCurrentOperater().getEmail());
 		operater.setName(this.getCurrentOperater().getName());
-		operater.setPhone(this.getCurrentOperater().getPhone());
 		return operater;
 	}
 
@@ -248,18 +216,13 @@ public class OperaterControl extends BaseControl<Operater> {
 			if (dbOperater == null) {
 				return MessageOut.UPDATE_FAIL_MESSAGE;
 			}
-			dbOperater.setEmail(operater.getEmail());
 			dbOperater.setName(operater.getName());
-			dbOperater.setPhone(operater.getPhone());
-			dbOperater.setOperaterCode(dbOperater.getCode());
-			dbOperater.setOperaterId(dbOperater.getId());
-			dbOperater.setUpdateTime(new Date());
 			if (operater.getPassword() != null && operater.getPassword().length() > 0) {
 				dbOperater.setPassword(MD5Util.getMD5String(operater.getPassword()));
 			}
 			this.operaterService.update(dbOperater);
 			((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getSession(true)
-					.setAttribute(Constants.USER_INFO, dbOperater);
+					.setAttribute(Context.USER_INFO, dbOperater);
 			return MessageOut.UPDATE_OK_MESSAGE;
 		} catch (ServiceException e) {
 			// TODO Auto-generated catch block
@@ -288,9 +251,6 @@ public class OperaterControl extends BaseControl<Operater> {
 				for (int i = 0; i < tmp.length; i++) {
 					Operater dbOperater = (Operater) this.operaterService.getByKey(Long.parseLong(tmp[i]));
 					dbOperater.setStatus(0);
-					dbOperater.setOperaterId(this.getCurrentOperater().getId());
-					dbOperater.setOperaterCode(this.getCurrentOperater().getCode());
-					dbOperater.setUpdateTime(new Date());
 					this.operaterService.update(dbOperater);
 				}
 			}
@@ -320,9 +280,6 @@ public class OperaterControl extends BaseControl<Operater> {
 				for (int i = 0; i < tmp.length; i++) {
 					Operater dbOperater = (Operater) this.operaterService.getByKey(Long.parseLong(tmp[i]));
 					dbOperater.setStatus(1);
-					dbOperater.setOperaterId(this.getCurrentOperater().getId());
-					dbOperater.setOperaterCode(this.getCurrentOperater().getCode());
-					dbOperater.setUpdateTime(new Date());
 					this.operaterService.update(dbOperater);
 				}
 			}

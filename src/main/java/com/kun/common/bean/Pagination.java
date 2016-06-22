@@ -9,7 +9,7 @@ public class Pagination {
 	// 每页大小缺省值
 	public static final int PAGE_SIZE_DEFAULT = 10;
 
-	private int pageNumber = 0;
+	private int pageNumber = 1;
 
 	private int pageSize = PAGE_SIZE_DEFAULT;
 

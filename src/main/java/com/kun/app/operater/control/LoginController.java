@@ -8,17 +8,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.kun.Context;
 import com.kun.app.operater.model.Operater;
 import com.kun.app.operater.service.IOperaterService;
-import com.kun.common.constant.Constants;
 import com.kun.common.exception.ServiceException;
-import com.kun.common.web.control.BaseControl;
+import com.kun.common.web.control.BaseController;
 import com.kun.common.web.response.MessageOut;
 import com.kun.common.web.response.Out;
 
 @Controller("loginControl")
 @RequestMapping("/login")
-public class LoginControl extends BaseControl<Operater> {
+public class LoginController extends BaseController<Operater> {
 
 	@Resource(name = "operaterService")
 	private IOperaterService operaterService;
@@ -40,7 +40,7 @@ public class LoginControl extends BaseControl<Operater> {
 				return MessageOut.LOGIN_FAIL_MESSAGE;
 			}
 			((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getSession(true)
-					.setAttribute(Constants.USER_INFO, tmp);
+					.setAttribute(Context.USER_INFO, tmp);
 			return MessageOut.LOGIN_OK_MESSAGE;
 		} catch (ServiceException e) {
 			this.getLogger().error(e);
@@ -63,7 +63,7 @@ public class LoginControl extends BaseControl<Operater> {
 	public Out<Object> logout() {
 		try {
 			((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getSession()
-					.removeAttribute(Constants.USER_INFO);
+					.removeAttribute(Context.USER_INFO);
 		} catch (Exception e) {
 			this.getLogger().error(e);
 		}

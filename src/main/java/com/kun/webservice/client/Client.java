@@ -34,6 +34,7 @@ public class Client {
 		} else {
 			System.out.println("you are wrong !");
 		}
+		context.close();
 		System.exit(0);
 		// END SNIPPET: client
 	}

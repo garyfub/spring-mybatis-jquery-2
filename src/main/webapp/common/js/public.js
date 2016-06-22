@@ -81,8 +81,8 @@ function HashMap() {
 $.ajaxSetup({
 	cache : false,
 	complete : function(XMLHttpRequest, textStatus) {
-		if (XMLHttpRequest.status >= 400) {
-			eval(XMLHttpRequest.responseText);
+		if (XMLHttpRequest.status == 408) {
+			window.parent.location.href = XMLHttpRequest.responseText;
 		}
 	}
 });
